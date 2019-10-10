@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Making your first Phaser 3 Game - Part 10</title>
+    <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<script type="text/javascript">
+
+var config = {
+    type: Phaser.WEBGL,
+    parent: 'phaser-example',
+    scene: {
+        preload: preload,
+        create: create
+    }
+};
+
+var game = new Phaser.Game(config);
+
+function preload() {
+    this.load.image('eye', 'assets/eye.png');
+}
+
+function create() {
+  var emptyCellData = [
+    '33333333333',
+    '3.........3',
+    '3.........3',
+    '3.........3',
+    '3.........3',
+    '3.........3',
+    '3.........3',
+    '3.........3',
+    '3.........3',
+    '3.........3',
+    '33333333333',
+  ];
+
+
+  var circleCellData = [
+    '33333333333',
+    '3.........3',
+    '3...333...3',
+    '3..3...3..3',
+    '3.3.....3.3',
+    '3.3.....3.3',
+    '3.3.....3.3',
+    '3..3...3..3',
+    '3...333...3',
+    '3.........3',
+    '33333333333',
+  ];
+
+  var crossCellData = [
+    '33333333333',
+    '3.........3',
+    '3.3.....3.3',
+    '3..3...3..3',
+    '3...3.3...3',
+    '3....3....3',
+    '3...3.3...3',
+    '3..3...3..3',
+    '3.3.....3.3',
+    '3.........3',
+    '33333333333',
+  ];
+
+  var winConditions = [
+    [[0,0], [0,1], [0,2]],
+    [[1,0], [1,1], [1,2]],
+    [[2,0], [2,1], [2,2]],
+    [[0,0], [1,0], [2,0]],
+    [[0,1], [1,1], [2,1]],
+    [[0,2], [1,2], [2,2]],
+    [[0,0], [1,1], [2,2]],
+    [[0,2], [1,1], [2,0]]
+  ]
+
+  var turnCount = 0;
+  var winner;
+
+  function play(pointer) {
+    var circleTurn = turnCount % 2 == 0
+    if (!winner && this.getData('played') == null) {
+      var turn = circleTurn ? 'circle' : 'cross';
+      var nextTurn = circleTurn ? 'cross' : 'circle';
+      this.setData('played',turn);
+      this.setTexture(turn);
+      turnCount++;
+      checkGame();
+      if (winner) {
+        statusMessage.setText(winner + ' wins!');
+      } else {
+        statusMessage.setText(nextTurn + ' turn');
+      }
+    }
+  }
+
+  function checkGame() {
+    for (var boxList of winConditions) {
+      var box1 = boxes[boxList[0][0]][boxList[0][1]];
+      var box2 = boxes[boxList[1][0]][boxList[1][1]];
+      var box3 = boxes[boxList[2][0]][boxList[2][1]];
+      var winResult = checkWin(box1, box2, box3)
+      if (winResult == 'circle' || winResult == 'cross') {
+        console.log('We have a winner! ' + winResult)
+        winner = winResult;
+      }
+    }
+  }
+
+  function checkWin(firstBox, secondBox, thirdBox) {
+    box1 = firstBox.getData('played')
+    box2 = secondBox.getData('played')
+    box3 = thirdBox.getData('played')
+    if (box1 == box2 && box1 == box3 && box1 != '') {
+      return box1
+    } else {
+      return '';
+    }
+  }
+
+  circleData = {
+      source: new Phaser.Geom.Circle(0, 0, 100),
+      type: 'edge',
+      quantity: 50
+  }
+
+  this.textures.generate('boxTexture', { data: emptyCellData, pixelWidth: 10, pixelHeight: 10 });
+  this.textures.generate('circle', { data: circleCellData, pixelWidth: 10, pixelHeight: 10 });
+  this.textures.generate('cross', { data: crossCellData, pixelWidth: 10, pixelHeight: 10 });
+
+  var startX = 400;
+  var startY = 200;
+  var boxes = [
+    ['','',''],
+    ['','',''],
+    ['','','']
+  ];
+
+  for (var x = 0; x < 3; x++) {
+    for (var y = 0; y < 3; y++) {
+      var boxX = startX + (x * 110);
+      var boxY = startY + (y * 110);
+      var box = this.add.sprite(boxX, boxY, 'boxTexture').setInteractive().on('pointerdown', play);
+      boxes[x][y] = box
+    }
+  }
+
+  statusMessage = this.add.text(100, 100, "circle turn")
+}
+
+</script>
+
+</body>
+</html>
