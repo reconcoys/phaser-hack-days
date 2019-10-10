@@ -1,2 +1,4 @@
 node_modules/
 phaser3-tutorial-src/
+.DS_Store
+public/.DS_Store

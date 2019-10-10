@@ -15,147 +15,93 @@
 <script type="text/javascript">
 
 var config = {
-    type: Phaser.WEBGL,
+    type: Phaser.AUTO,
+    width: 1000,
+    height:1000,
+    backgroundColor: '#FAFAFA',
     parent: 'phaser-example',
+    physics: {
+        default: 'matter',
+        matter: {
+            debug: false
+        }
+    },
     scene: {
         preload: preload,
-        create: create
+        create: create,
+        update: update
     }
 };
 
 var game = new Phaser.Game(config);
 
+var player;
+var SteeringWheel;
+
+
+var carSpeed = 0;
+var staticFriction = 1;
+
 function preload() {
-    this.load.image('eye', 'assets/eye.png');
+    this.load.image('car', 'assets/car-yellow.png');
+    this.load.image('dude', 'assets/phaser-dude.png');
+    this.load.image('wheel', 'assets/steering-wheel.png');
 }
 
 function create() {
-  var emptyCellData = [
-    '33333333333',
-    '3.........3',
-    '3.........3',
-    '3.........3',
-    '3.........3',
-    '3.........3',
-    '3.........3',
-    '3.........3',
-    '3.........3',
-    '3.........3',
-    '33333333333',
-  ];
+    cursors = this.input.keyboard.createCursorKeys();
 
+    player = this.matter.add.image(400, 300, 'car');
+    player.setTint(0xFF5715)
 
-  var circleCellData = [
-    '33333333333',
-    '3.........3',
-    '3...333...3',
-    '3..3...3..3',
-    '3.3.....3.3',
-    '3.3.....3.3',
-    '3.3.....3.3',
-    '3..3...3..3',
-    '3...333...3',
-    '3.........3',
-    '33333333333',
-  ];
+    this.matter.world.setBounds().disableGravity();
 
-  var crossCellData = [
-    '33333333333',
-    '3.........3',
-    '3.3.....3.3',
-    '3..3...3..3',
-    '3...3.3...3',
-    '3....3....3',
-    '3...3.3...3',
-    '3..3...3..3',
-    '3.3.....3.3',
-    '3.........3',
-    '33333333333',
-  ];
+    SteeringWheel = this.matter.add.image(200, 150, 'wheel');
 
-  var winConditions = [
-    [[0,0], [0,1], [0,2]],
-    [[1,0], [1,1], [1,2]],
-    [[2,0], [2,1], [2,2]],
-    [[0,0], [1,0], [2,0]],
-    [[0,1], [1,1], [2,1]],
-    [[0,2], [1,2], [2,2]],
-    [[0,0], [1,1], [2,2]],
-    [[0,2], [1,1], [2,0]]
-  ]
+    SteeringWheel.setBody({
+        type: 'circle',
+        radius: 48
+    });
 
-  var turnCount = 0;
-  var winner;
+    // player.setBody({
+    //     type: 'rectangle',
+    //     width: 32,
+    //     height: 64
+    // });
+}
 
-  function play(pointer) {
-    var circleTurn = turnCount % 2 == 0
-    if (!winner && this.getData('played') == null) {
-      var turn = circleTurn ? 'circle' : 'cross';
-      var nextTurn = circleTurn ? 'cross' : 'circle';
-      this.setData('played',turn);
-      this.setTexture(turn);
-      turnCount++;
-      checkGame();
-      if (winner) {
-        statusMessage.setText(winner + ' wins!');
-      } else {
-        statusMessage.setText(nextTurn + ' turn');
-      }
+function update() {
+    if (cursors.left.isDown && SteeringWheel.rotation > -1.5) {
+        SteeringWheel.rotation -= 0.1;
     }
-  }
 
-  function checkGame() {
-    for (var boxList of winConditions) {
-      var box1 = boxes[boxList[0][0]][boxList[0][1]];
-      var box2 = boxes[boxList[1][0]][boxList[1][1]];
-      var box3 = boxes[boxList[2][0]][boxList[2][1]];
-      var winResult = checkWin(box1, box2, box3)
-      if (winResult == 'circle' || winResult == 'cross') {
-        console.log('We have a winner! ' + winResult)
-        winner = winResult;
-      }
+    if (cursors.right.isDown && SteeringWheel.rotation < 1.5) {
+        SteeringWheel.rotation += 0.1;
     }
-  }
 
-  function checkWin(firstBox, secondBox, thirdBox) {
-    box1 = firstBox.getData('played')
-    box2 = secondBox.getData('played')
-    box3 = thirdBox.getData('played')
-    if (box1 == box2 && box1 == box3 && box1 != '') {
-      return box1
-    } else {
-      return '';
+    if (cursors.left.isUp && cursors.right.isUp && SteeringWheel.rotation != 0) {
+        SteeringWheel.rotation = SteeringWheel.rotation / 1.5;
     }
-  }
 
-  circleData = {
-      source: new Phaser.Geom.Circle(0, 0, 100),
-      type: 'edge',
-      quantity: 50
-  }
-
-  this.textures.generate('boxTexture', { data: emptyCellData, pixelWidth: 10, pixelHeight: 10 });
-  this.textures.generate('circle', { data: circleCellData, pixelWidth: 10, pixelHeight: 10 });
-  this.textures.generate('cross', { data: crossCellData, pixelWidth: 10, pixelHeight: 10 });
-
-  var startX = 400;
-  var startY = 200;
-  var boxes = [
-    ['','',''],
-    ['','',''],
-    ['','','']
-  ];
-
-  for (var x = 0; x < 3; x++) {
-    for (var y = 0; y < 3; y++) {
-      var boxX = startX + (x * 110);
-      var boxY = startY + (y * 110);
-      var box = this.add.sprite(boxX, boxY, 'boxTexture').setInteractive().on('pointerdown', play);
-      boxes[x][y] = box
+    if (cursors.up.isDown && carSpeed < 6) {
+        carSpeed = carSpeed + (carSpeed * 0.02) + 0.01;
     }
-  }
 
-  statusMessage = this.add.text(100, 100, "circle turn")
+    if (cursors.down.isDown) {
+        carSpeed -= 0.04;
+    }
+
+
+    var speedsquared = (player.body.velocity.x * player.body.velocity.x) + (player.body.velocity.y * player.body.velocity.y);
+
+    //if we have enough power, allow movement
+    if (speedsquared > staticFriction) {
+        player.setAngularVelocity(SteeringWheel.rotation * 0.05 * Math.exp(-speedsquared / 100));
+    }
+
+    //no drift
+    player.setVelocityX(Math.sin(player.rotation)*carSpeed);
+    player.setVelocityY(-Math.cos(player.rotation)*carSpeed);
 }
 
 </script>
