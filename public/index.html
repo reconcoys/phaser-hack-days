@@ -18,7 +18,7 @@ var config = {
     type: Phaser.AUTO,
     width: 1000,
     height:1000,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: '#333333',
     parent: 'phaser-example',
     physics: {
         default: 'matter',
@@ -35,73 +35,121 @@ var config = {
 
 var game = new Phaser.Game(config);
 
-var player;
-var SteeringWheel;
+var player1;
+var player2;
+var wheel1;
+var wheel2;
 
 
-var carSpeed = 0;
-var staticFriction = 1;
+var car1Speed = 0;
+var car2Speed = 0;
+var staticFriction = 0;
 
 function preload() {
     this.load.image('car', 'assets/car-yellow.png');
-    this.load.image('dude', 'assets/phaser-dude.png');
+    this.load.image('grass', 'assets/grass.jpg');
     this.load.image('wheel', 'assets/steering-wheel.png');
+    this.load.image('wall', 'assets/platform.png');
+    // this.load.image('street', 'assets/street.jpg');
 }
 
 function create() {
     cursors = this.input.keyboard.createCursorKeys();
 
-    player = this.matter.add.image(400, 300, 'car');
-    player.setTint(0xFF5715)
+    wasd = this.input.keyboard.addKeys(
+      {
+        up:Phaser.Input.Keyboard.KeyCodes.W,
+        down:Phaser.Input.Keyboard.KeyCodes.S,
+        left:Phaser.Input.Keyboard.KeyCodes.A,
+        right:Phaser.Input.Keyboard.KeyCodes.D
+      }
+    );
+
+    // this.add.tileSprite(500, 500, 1000, 1000, 'street').setScale(0.3);;
+
+    var wall1 = this.matter.add.image(275, 275, 'grass', 'grassy', { isStatic: true })
+    var wall2 = this.matter.add.image(725, 725, 'grass', 'grassy', { isStatic: true })
+    var wall3 = this.matter.add.image(275, 725, 'grass', 'grassy', { isStatic: true })
+    var wall4 = this.matter.add.image(725, 275, 'grass', 'grassy', { isStatic: true })
+
+    player1 = this.matter.add.image(500, 500, 'car').setScale(0.3);
+    player1.setTint(0xFF5715)
+
+    player2 = this.matter.add.image(510, 500, 'car').setScale(0.3);
+    player2.setTint(0xFFFFFF)
 
     this.matter.world.setBounds().disableGravity();
 
-    SteeringWheel = this.matter.add.image(200, 150, 'wheel');
-
-    SteeringWheel.setBody({
-        type: 'circle',
-        radius: 48
-    });
-
-    // player.setBody({
-    //     type: 'rectangle',
-    //     width: 32,
-    //     height: 64
-    // });
+    wheel1 = this.add.image(275, 275, 'wheel', { isStatic: true });
+    wheel2 = this.add.image(725, 275, 'wheel', { isStatic: true });
 }
 
 function update() {
-    if (cursors.left.isDown && SteeringWheel.rotation > -1.5) {
-        SteeringWheel.rotation -= 0.1;
+    if (cursors.left.isDown && wheel1.rotation > -1.5) {
+        wheel1.rotation -= 0.1;
     }
 
-    if (cursors.right.isDown && SteeringWheel.rotation < 1.5) {
-        SteeringWheel.rotation += 0.1;
+    if (cursors.right.isDown && wheel1.rotation < 1.5) {
+        wheel1.rotation += 0.1;
     }
 
-    if (cursors.left.isUp && cursors.right.isUp && SteeringWheel.rotation != 0) {
-        SteeringWheel.rotation = SteeringWheel.rotation / 1.5;
+    if (cursors.left.isUp && cursors.right.isUp && wheel1.rotation != 0) {
+        wheel1.rotation = wheel1.rotation / 1.5;
     }
 
-    if (cursors.up.isDown && carSpeed < 6) {
-        carSpeed = carSpeed + (carSpeed * 0.02) + 0.01;
+    if (cursors.up.isDown && car1Speed < 6) {
+        car1Speed = car1Speed + (Math.abs(car1Speed) * 0.02) + 0.01;
     }
 
     if (cursors.down.isDown) {
-        carSpeed -= 0.04;
+        car1Speed -= 0.04;
     }
 
 
-    var speedsquared = (player.body.velocity.x * player.body.velocity.x) + (player.body.velocity.y * player.body.velocity.y);
+    var speedsquared1 = (player1.body.velocity.x * player1.body.velocity.x) + (player1.body.velocity.y * player1.body.velocity.y);
 
     //if we have enough power, allow movement
-    if (speedsquared > staticFriction) {
-        player.setAngularVelocity(SteeringWheel.rotation * 0.05 * Math.exp(-speedsquared / 100));
+    if (speedsquared1 > staticFriction) {
+        player1.setAngularVelocity(wheel1.rotation * 0.05 * Math.exp(-speedsquared1 / 100));
     }
 
     //no drift
-    player.setVelocityX(Math.sin(player.rotation)*carSpeed);
-    player.setVelocityY(-Math.cos(player.rotation)*carSpeed);
+    player1.setVelocityX(Math.sin(player1.rotation)*car1Speed);
+    player1.setVelocityY(-Math.cos(player1.rotation)*car1Speed);
+
+    //////////////////////////////////////////////////////////
+
+    if (wasd.left.isDown && wheel2.rotation > -1.5) {
+        wheel2.rotation -= 0.1;
+    }
+
+    if (wasd.right.isDown && wheel2.rotation < 1.5) {
+        wheel2.rotation += 0.1;
+    }
+
+    if (wasd.left.isUp && wasd.right.isUp && wheel2.rotation != 0) {
+        wheel2.rotation = wheel2.rotation / 1.5;
+    }
+
+    if (wasd.up.isDown && car2Speed < 6) {
+        car2Speed = car2Speed + (Math.abs(car2Speed) * 0.02) + 0.01;
+    }
+
+    if (wasd.down.isDown) {
+        car2Speed -= 0.04;
+    }
+
+
+    var speedsquared2 = (player2.body.velocity.x * player2.body.velocity.x) + (player2.body.velocity.y * player2.body.velocity.y);
+
+    //if we have enough power, allow movement
+    if (speedsquared2 > staticFriction) {
+        player2.setAngularVelocity(wheel2.rotation * 0.05 * Math.exp(-speedsquared2 / 100));
+    }
+
+    //no drift
+    player2.setVelocityX(Math.sin(player2.rotation)*car2Speed);
+    player2.setVelocityY(-Math.cos(player2.rotation)*car2Speed);
 }
 
 </script>
