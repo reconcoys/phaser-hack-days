@@ -122,7 +122,6 @@ function create() {
       callback: eventData => {
         var player = eventData.gameObjectB.getData('player');
         var newScore = eventData.gameObjectB.getData('score') + 1;
-        console.log('new score: ', newScore)
 
         eventData.gameObjectB.setData('score', newScore);
         setScore(eventData.gameObjectB);
@@ -132,23 +131,34 @@ function create() {
 }
 
 function update() {
-    if (cursors.left.isDown && wheel1.rotation > -1.5) {
-        wheel1.rotation -= 0.1;
+
+    function handleLeftTurn(controls, wheel) {
+      if (controls.left.isDown && wheel.rotation > -1.5) {
+          wheel.rotation -= 0.1;
+      }
     }
 
-    if (cursors.right.isDown && wheel1.rotation < 1.5) {
-        wheel1.rotation += 0.1;
+    function handleRightTurn(controls, wheel) {
+      if (controls.right.isDown && wheel.rotation < 1.5) {
+          wheel.rotation += 0.1;
+      }
     }
 
-    if (cursors.left.isUp && cursors.right.isUp && wheel1.rotation != 0) {
-        wheel1.rotation = wheel1.rotation / 1.5;
+    function handleBackToCenter(controls, wheel) {
+      if (controls.left.isUp && controls.right.isUp && wheel.rotation != 0) {
+          wheel.rotation = wheel.rotation / 1.5;
+      }
     }
+
+    handleLeftTurn(cursors, wheel1)
+    handleRightTurn(cursors, wheel1)
+    handleBackToCenter(cursors, wheel1)
 
     if (cursors.up.isDown && car1Speed < 6) {
         car1Speed = car1Speed + (Math.abs(car1Speed) * 0.02) + 0.01;
     }
 
-    if (cursors.down.isDown) {
+    if (cursors.down.isDown && car1Speed > -3) {
         car1Speed -= 0.04;
     }
 
@@ -166,23 +176,15 @@ function update() {
 
     //////////////////////////////////////////////////////////
 
-    if (wasd.left.isDown && wheel2.rotation > -1.5) {
-        wheel2.rotation -= 0.1;
-    }
-
-    if (wasd.right.isDown && wheel2.rotation < 1.5) {
-        wheel2.rotation += 0.1;
-    }
-
-    if (wasd.left.isUp && wasd.right.isUp && wheel2.rotation != 0) {
-        wheel2.rotation = wheel2.rotation / 1.5;
-    }
+    handleLeftTurn(wasd, wheel2)
+    handleRightTurn(wasd, wheel2)
+    handleBackToCenter(wasd, wheel2)
 
     if (wasd.up.isDown && car2Speed < 6) {
         car2Speed = car2Speed + (Math.abs(car2Speed) * 0.02) + 0.01;
     }
 
-    if (wasd.down.isDown) {
+    if (wasd.down.isDown && car2Speed > -3) {
         car2Speed -= 0.04;
     }
 
