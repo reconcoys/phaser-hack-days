@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <title>Making your first Phaser 3 Game - Part 10</title>
     <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/phaser-matter-collision-plugin"></script>
     <style type="text/css">
         body {
             margin: 0;
@@ -30,6 +31,15 @@ var config = {
         preload: preload,
         create: create,
         update: update
+    },
+    plugins: {
+      scene: [
+        {
+          plugin: PhaserMatterCollisionPlugin, // The plugin class
+          key: "matterCollision", // Where to store in Scene.Systems, e.g. scene.sys.matterCollision
+          mapping: "matterCollision" // Where to store in the Scene, e.g. scene.matterCollision
+        }
+      ]
     }
 };
 
@@ -50,7 +60,8 @@ function preload() {
     this.load.image('grass', 'assets/grass.jpg');
     this.load.image('wheel', 'assets/steering-wheel.png');
     this.load.image('wall', 'assets/platform.png');
-    // this.load.image('street', 'assets/street.jpg');
+    this.load.image('street', 'assets/street.jpg');
+    this.load.image('badge', 'assets/badge.png');
 }
 
 function create() {
@@ -65,7 +76,7 @@ function create() {
       }
     );
 
-    // this.add.tileSprite(500, 500, 1000, 1000, 'street').setScale(0.3);;
+    // this.add.tileSprite(500, 500, 1000, 1000, 'street').setScale(1);
 
     var wall1 = this.matter.add.image(275, 275, 'grass', 'grassy', { isStatic: true })
     var wall2 = this.matter.add.image(725, 725, 'grass', 'grassy', { isStatic: true })
@@ -76,12 +87,26 @@ function create() {
     player1.setTint(0xFF5715)
 
     player2 = this.matter.add.image(510, 500, 'car').setScale(0.3);
-    player2.setTint(0xFFFFFF)
+    player2.setTint(0x00FF00)
 
     this.matter.world.setBounds().disableGravity();
 
     wheel1 = this.add.image(275, 275, 'wheel', { isStatic: true });
+    wheel1.setTint(0xFF5715)
+
     wheel2 = this.add.image(725, 275, 'wheel', { isStatic: true });
+    wheel2.setTint(0x00FF00)
+
+    var target = this.matter.add.image(50, 50, 'badge').setScale(0.03);
+
+    this.matterCollision.addOnCollideStart({
+      objectA: target,
+      objectB: [player1, player2],
+      callback: eventData => {
+        console.log(`${eventData.gameObjectB} hit target`)
+        eventData.gameObjectA.setRandomPosition()
+      }
+    });
 }
 
 function update() {
