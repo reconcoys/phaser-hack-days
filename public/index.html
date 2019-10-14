@@ -52,6 +52,8 @@ var wheel1;
 var player2;
 var score2;
 var wheel2;
+var trap1;
+var trap2;
 
 
 var car1Speed = 0;
@@ -62,24 +64,32 @@ function preload() {
     this.load.image('car', 'assets/car-yellow.png');
     this.load.image('vent', 'assets/vent.png');
     this.load.image('wheel', 'assets/steering-wheel.png');
-    this.load.image('wall', 'assets/platform.png');
     this.load.image('street', 'assets/street.jpg');
     this.load.image('badge', 'assets/badge.png');
+    this.load.image('phoney', 'assets/phoney.png');
+    this.load.image('beer', 'assets/beer.png');
 }
 
 function create() {
-    cursors = this.input.keyboard.createCursorKeys();
+    cursors = this.input.keyboard.addKeys(
+      {
+        up:Phaser.Input.Keyboard.KeyCodes.UP,
+        down:Phaser.Input.Keyboard.KeyCodes.DOWN,
+        left:Phaser.Input.Keyboard.KeyCodes.LEFT,
+        right:Phaser.Input.Keyboard.KeyCodes.RIGHT,
+        weapon: Phaser.Input.Keyboard.KeyCodes.ENTER
+      }
+    );
 
     wasd = this.input.keyboard.addKeys(
       {
         up:Phaser.Input.Keyboard.KeyCodes.W,
         down:Phaser.Input.Keyboard.KeyCodes.S,
         left:Phaser.Input.Keyboard.KeyCodes.A,
-        right:Phaser.Input.Keyboard.KeyCodes.D
+        right:Phaser.Input.Keyboard.KeyCodes.D,
+        weapon: Phaser.Input.Keyboard.KeyCodes.TAB
       }
     );
-
-    // this.add.tileSprite(500, 500, 1000, 1000, 'street').setScale(1);
 
     var wall1 = this.matter.add.image(275, 275, 'vent', null, { isStatic: true }).setTint(0x808080)
     var wall2 = this.matter.add.image(725, 725, 'vent', null, { isStatic: true }).setTint(0x808080)
@@ -88,14 +98,18 @@ function create() {
 
     player1 = this.matter.add.image(500, 500, 'car')
       .setScale(0.3)
-      .setData('player', 'Player 1')
+      .setData('player', 'Careless Cara')
       .setData('score', 0)
+      .setData('weapon', 'beer')
+      .setData('handicap', null)
       .setTint(0xFF5715);
 
     player2 = this.matter.add.image(510, 500, 'car')
       .setScale(0.3)
-      .setData('player', 'Player 2')
+      .setData('player', 'Drunk Daria')
       .setData('score', 0)
+      .setData('weapon', 'phoney')
+      .setData('handicap', null)
       .setTint(0x00FF00);
 
     this.matter.world.setBounds().disableGravity();
@@ -132,15 +146,31 @@ function create() {
 
 function update() {
 
-    function handleLeftTurn(controls, wheel) {
-      if (controls.left.isDown && wheel.rotation > -1.5) {
+    function leftTurn(keyDown, wheel) {
+      if (keyDown && wheel.rotation > -1.5) {
           wheel.rotation -= 0.1;
       }
     }
 
-    function handleRightTurn(controls, wheel) {
-      if (controls.right.isDown && wheel.rotation < 1.5) {
+    function rightTurn(keyDown, wheel) {
+      if (keyDown && wheel.rotation < 1.5) {
           wheel.rotation += 0.1;
+      }
+    }
+
+    function handleLeftTurn(controls, wheel, player) {
+      if (player.getData('handicap') == 'on') {
+        leftTurn(controls.right.isDown, wheel)
+      } else {
+        leftTurn(controls.left.isDown, wheel);
+      }
+    }
+
+    function handleRightTurn(controls, wheel, player) {
+      if (player.getData('handicap') == 'on') {
+        rightTurn(controls.left.isDown, wheel)
+      } else {
+        rightTurn(controls.right.isDown, wheel);
       }
     }
 
@@ -150,9 +180,9 @@ function update() {
       }
     }
 
-    handleLeftTurn(cursors, wheel1)
-    handleRightTurn(cursors, wheel1)
-    handleBackToCenter(cursors, wheel1)
+    handleLeftTurn(cursors, wheel1, player1);
+    handleRightTurn(cursors, wheel1, player1);
+    handleBackToCenter(cursors, wheel1);
 
     if (cursors.up.isDown && car1Speed < 6) {
         car1Speed = car1Speed + (Math.abs(car1Speed) * 0.02) + 0.01;
@@ -162,6 +192,19 @@ function update() {
         car1Speed -= 0.04;
     }
 
+    if (cursors.weapon.isDown && player1.getData('weapon')) {
+      trap1 = this.matter.add.image(player1.x, player1.y, player1.getData('weapon')).setScale(0.03);
+      player1.setData('weapon', null);
+
+      this.matterCollision.addOnCollideStart({
+        objectA: trap1,
+        objectB: player2,
+        callback: eventData => {
+          eventData.gameObjectB.setData('handicap', 'on')
+          eventData.gameObjectA.destroy();
+        }
+      });
+    }
 
     var speedsquared1 = (player1.body.velocity.x * player1.body.velocity.x) + (player1.body.velocity.y * player1.body.velocity.y);
 
@@ -176,9 +219,9 @@ function update() {
 
     //////////////////////////////////////////////////////////
 
-    handleLeftTurn(wasd, wheel2)
-    handleRightTurn(wasd, wheel2)
-    handleBackToCenter(wasd, wheel2)
+    handleLeftTurn(wasd, wheel2, player2);
+    handleRightTurn(wasd, wheel2, player2);
+    handleBackToCenter(wasd, wheel2);
 
     if (wasd.up.isDown && car2Speed < 6) {
         car2Speed = car2Speed + (Math.abs(car2Speed) * 0.02) + 0.01;
@@ -186,6 +229,20 @@ function update() {
 
     if (wasd.down.isDown && car2Speed > -3) {
         car2Speed -= 0.04;
+    }
+
+    if (wasd.weapon.isDown && player2.getData('weapon')) {
+      trap2 = this.matter.add.image(player2.x, player2.y, player2.getData('weapon')).setScale(0.03);
+      player2.setData('weapon', null);
+
+      this.matterCollision.addOnCollideStart({
+        objectA: trap2,
+        objectB: player1,
+        callback: eventData => {
+          eventData.gameObjectB.setData('handicap', 'on')
+          eventData.gameObjectA.destroy();
+        }
+      });
     }
 
 
