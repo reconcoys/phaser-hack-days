@@ -121,12 +121,12 @@ function create() {
     }
 
     wheel1 = this.add.image(275, 275, 'wheel', null, { isStatic: true });
-    score1 = this.add.text(230, 400, `${player1.getData('player')}: ${player1.getData('score')}`, { fill: "#FF5715" })
+    score1 = this.add.text(200, 400, `${player1.getData('player')}: ${player1.getData('score')}`, { fill: "#FF5715" })
     player1.setData('text', score1);
     wheel1.setTint(0xFF5715);
 
     wheel2 = this.add.image(725, 275, 'wheel', null, { isStatic: true });
-    score2 = this.add.text(680, 400, `${player2.getData('player')}: ${player2.getData('score')}`, { fill: "#00FF00" })
+    score2 = this.add.text(650, 400, `${player2.getData('player')}: ${player2.getData('score')}`, { fill: "#00FF00" })
     player2.setData('text', score2);
     wheel2.setTint(0x00FF00);
 
