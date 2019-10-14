@@ -157,7 +157,7 @@ function update() {
     function checkWinner(player) {
       if (player.getData('score') == 5) {
         gameOver = true
-        winText.setText(`${player1.getData('player')}\nWINS!!!!!`);
+        winText.setText(`${player.getData('player')}\nWINS!!!!!`);
       }
     }
 
