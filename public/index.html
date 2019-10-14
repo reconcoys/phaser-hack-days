@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <title>Making your first Phaser 3 Game - Part 10</title>
+    <title>Rooty Racer</title>
     <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script>
     <script src="//cdn.jsdelivr.net/npm/phaser-matter-collision-plugin"></script>
     <style type="text/css">
@@ -44,6 +44,8 @@ var config = {
 };
 
 var game = new Phaser.Game(config);
+
+var gameOver = false
 
 var player1;
 var score1;
@@ -149,9 +151,13 @@ function create() {
 }
 
 function update() {
+    if (gameOver) {
+      this.scene.pause('default');
+    }
     function checkWinner(player) {
       if (player.getData('score') == 5) {
-        winText.setText(`${player1.getData('player')}\nWINS!!!!!`)
+        gameOver = true
+        winText.setText(`${player1.getData('player')}\nWINS!!!!!`);
       }
     }
 
