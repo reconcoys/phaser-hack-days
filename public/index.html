@@ -56,6 +56,8 @@ var trap1;
 var trap2;
 
 
+var winText;
+
 var car1Speed = 0;
 var car2Speed = 0;
 var staticFriction = 0;
@@ -142,9 +144,19 @@ function create() {
         eventData.gameObjectA.setRandomPosition();
       }
     });
+
+    winText = this.add.text(250, 435, "", { fontSize: 80, fill: "#000000" })
 }
 
 function update() {
+    function checkWinner(player) {
+      if (player.getData('score') == 5) {
+        winText.setText(`${player1.getData('player')}\nWINS!!!!!`)
+      }
+    }
+
+    checkWinner(player1)
+    checkWinner(player2)
 
     function leftTurn(keyDown, wheel) {
       if (keyDown && wheel.rotation > -1.5) {
