@@ -19,7 +19,7 @@ var config = {
     type: Phaser.AUTO,
     width: 1000,
     height:1000,
-    backgroundColor: '#333333',
+    backgroundColor: '#DCDCDC',
     parent: 'phaser-example',
     physics: {
         default: 'matter',
@@ -46,8 +46,11 @@ var config = {
 var game = new Phaser.Game(config);
 
 var player1;
-var player2;
+var score1;
 var wheel1;
+
+var player2;
+var score2;
 var wheel2;
 
 
@@ -57,7 +60,7 @@ var staticFriction = 0;
 
 function preload() {
     this.load.image('car', 'assets/car-yellow.png');
-    this.load.image('grass', 'assets/grass.jpg');
+    this.load.image('vent', 'assets/vent.png');
     this.load.image('wheel', 'assets/steering-wheel.png');
     this.load.image('wall', 'assets/platform.png');
     this.load.image('street', 'assets/street.jpg');
@@ -78,24 +81,38 @@ function create() {
 
     // this.add.tileSprite(500, 500, 1000, 1000, 'street').setScale(1);
 
-    var wall1 = this.matter.add.image(275, 275, 'grass', 'grassy', { isStatic: true })
-    var wall2 = this.matter.add.image(725, 725, 'grass', 'grassy', { isStatic: true })
-    var wall3 = this.matter.add.image(275, 725, 'grass', 'grassy', { isStatic: true })
-    var wall4 = this.matter.add.image(725, 275, 'grass', 'grassy', { isStatic: true })
+    var wall1 = this.matter.add.image(275, 275, 'vent', null, { isStatic: true }).setTint(0x808080)
+    var wall2 = this.matter.add.image(725, 725, 'vent', null, { isStatic: true }).setTint(0x808080)
+    var wall3 = this.matter.add.image(275, 725, 'vent', null, { isStatic: true }).setTint(0x808080)
+    var wall4 = this.matter.add.image(725, 275, 'vent', null, { isStatic: true }).setTint(0x808080)
 
-    player1 = this.matter.add.image(500, 500, 'car').setScale(0.3);
-    player1.setTint(0xFF5715)
+    player1 = this.matter.add.image(500, 500, 'car')
+      .setScale(0.3)
+      .setData('player', 'Player 1')
+      .setData('score', 0)
+      .setTint(0xFF5715);
 
-    player2 = this.matter.add.image(510, 500, 'car').setScale(0.3);
-    player2.setTint(0x00FF00)
+    player2 = this.matter.add.image(510, 500, 'car')
+      .setScale(0.3)
+      .setData('player', 'Player 2')
+      .setData('score', 0)
+      .setTint(0x00FF00);
 
     this.matter.world.setBounds().disableGravity();
 
-    wheel1 = this.add.image(275, 275, 'wheel', { isStatic: true });
-    wheel1.setTint(0xFF5715)
+    function setScore(player) {
+      player.getData('text').setText(`${player.getData('player')}: ${player.getData('score')}`);
+    }
 
-    wheel2 = this.add.image(725, 275, 'wheel', { isStatic: true });
-    wheel2.setTint(0x00FF00)
+    wheel1 = this.add.image(275, 275, 'wheel', null, { isStatic: true });
+    score1 = this.add.text(230, 400, `${player1.getData('player')}: ${player1.getData('score')}`, { fill: "#FF5715" })
+    player1.setData('text', score1);
+    wheel1.setTint(0xFF5715);
+
+    wheel2 = this.add.image(725, 275, 'wheel', null, { isStatic: true });
+    score2 = this.add.text(680, 400, `${player2.getData('player')}: ${player2.getData('score')}`, { fill: "#00FF00" })
+    player2.setData('text', score2);
+    wheel2.setTint(0x00FF00);
 
     var target = this.matter.add.image(50, 50, 'badge').setScale(0.03);
 
@@ -103,8 +120,13 @@ function create() {
       objectA: target,
       objectB: [player1, player2],
       callback: eventData => {
-        console.log(`${eventData.gameObjectB} hit target`)
-        eventData.gameObjectA.setRandomPosition()
+        var player = eventData.gameObjectB.getData('player');
+        var newScore = eventData.gameObjectB.getData('score') + 1;
+        console.log('new score: ', newScore)
+
+        eventData.gameObjectB.setData('score', newScore);
+        setScore(eventData.gameObjectB);
+        eventData.gameObjectA.setRandomPosition();
       }
     });
 }
